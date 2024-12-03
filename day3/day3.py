@@ -9,15 +9,14 @@ DO = 15
 DONT = 16
 
 class Token:
-    def __init__(self, kind, index, val=None):
+    def __init__(self, kind, val=None):
         self.kind = kind
-        self.index = index
         self.val = val
 
 class Tokenizer:
     def __init__(self, str):
-        self.cursor = 0
         self.str = str
+        self.cursor = 0
         self.n = len(str)
         self.last_found = None
 
@@ -26,13 +25,13 @@ class Tokenizer:
             ch = self.str[self.cursor]
             if ch == ",":
                 self.cursor += 1
-                return Token(COMMA, self.cursor - 1)
+                return Token(COMMA)
             elif ch == "(":
                 self.cursor += 1
-                return Token(LPAREN, self.cursor - 1)
+                return Token(LPAREN)
             elif ch == ")":
                 self.cursor += 1
-                return Token(RPAREN, self.cursor - 1)
+                return Token(RPAREN)
             
             num = ""
             while ch.isdigit() and self.cursor < self.n:
@@ -42,13 +41,13 @@ class Tokenizer:
                     ch = self.str[self.cursor]
             if num:
                 assert 1 <= len(num) <= 3
-                return Token(NUM, self.cursor - len(num), int(num))
+                return Token(NUM, int(num))
         
             fn_val = [MUL, DONT, DO]
             for i, fn_name in enumerate(["mul", "don't", "do"]):
                 if self.str[self.cursor:].startswith(f"{fn_name}("):
                     self.cursor += len(fn_name)
-                    return Token(fn_val[i], self.cursor - len(fn_name))
+                    return Token(fn_val[i])
             self.cursor += 1
 
 #with open("test.txt") as file:
