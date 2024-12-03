@@ -1,10 +1,4 @@
-import pyperclip
-answer_part = 1
-def answer(v):
-    global answer_part
-    pyperclip.copy(v)
-    print("Part 1 =" if answer_part == 1 else "Part 2 =", v)
-    answer_part = 2
+from aoc_helper import *
 
 def check_safe(vals):
     desired_count = len(vals) - 1
@@ -29,11 +23,10 @@ def check_safe(vals):
 #with open("test.txt") as file:
 with open("day2.txt") as file:
     lines = file.read().strip().splitlines()
-
+    data = nums(lines)
     ans = 0
     ans2 = 0
-    for l in lines:
-        vals = [int(x) for x in l.split()]
+    for vals in data:
         if check_safe(vals):
             ans += 1
 
