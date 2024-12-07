@@ -8,12 +8,12 @@ def try_make_equation(ans, terms, allow_concat=False):
             return True
         if idx >= len(terms):
             continue
-        val = terms[idx]
+        term = terms[idx]
         idx += 1
-        vals.append((idx, current_val + val))
-        vals.append((idx, current_val * val))
+        vals.append((idx, current_val + term))
+        vals.append((idx, current_val * term))
         if allow_concat:
-            vals.append((idx, int(str(current_val)+str(val))))
+            vals.append((idx, int(str(current_val)+str(term))))
     return False
 
 #with open("test.txt") as file:
