@@ -11,13 +11,13 @@ def crc(files):
             location += 1
     return result
 
-def get_lists(s):
+def get_lists(input_str):
     file_id = 0
     free_id = -1
     file_list = []
     free_list = []
     current_block_loc = 0
-    for i,ch in enumerate(s):
+    for i,ch in enumerate(input_str):
         val = int(ch)
         if i % 2 == 0:
             # store the id, start_block, len
@@ -31,7 +31,6 @@ def get_lists(s):
 
 with open("day9.txt") as file:
     s = file.read().strip()
-
     #s = "2333133121414131402"
     #s = "12345"
     file_list, free_list = get_lists(s)
@@ -60,7 +59,6 @@ with open("day9.txt") as file:
     # if we have any leftovers, put them back
     if current_read_block[2] > 0:
         file_list.append(current_read_block)
-
     answer(crc(file_list))
 
     # part 2, defrag?
@@ -78,7 +76,7 @@ with open("day9.txt") as file:
             if move_candidate[2] <= free_candidate[2]:
                 # update location to consume free space                
                 move_candidate[1] = free_candidate[1]
-                # update location and lengh of free
+                # update location and lengh of free block
                 free_candidate[2] -= move_candidate[2]
                 free_candidate[1] += move_candidate[2]
                 break
