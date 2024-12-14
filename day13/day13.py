@@ -37,8 +37,6 @@ with open("day13.txt") as file:
     ans = 0
     ans2 = 0
 
-    cost = { "A": 3, "B": 1}
-
     claws = []
     for line in lines:
         parts = line.split("\n")
@@ -65,9 +63,5 @@ with open("day13.txt") as file:
                 continue
 
             if abs((sx2*ax + sy2*bx) - px) < 1e-16 and abs((sx2*ay + sy2*by) - py) < 1e-16:
-#           if abs(np.round(sx,16) - sx2) < 1e-6 and abs(np.round(sy,16) - sy2) < 1e-6:
                 ans += sx2 * 3 + sy2
-                #print(j, "TRUE:", solution, (np.round(sx,12) - sx), (np.round(sy,12) - sy))
-            #else:
-                #print(j, "FALSE: ", solution, sx - np.round(sx), sy - np.round(sy))
         answer(ans)
