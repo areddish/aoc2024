@@ -84,6 +84,8 @@ class VM:
             elif combo == 6:
                 combo = self.C
             self.IP += 1
+            # Modify IP before call to fn so that jumps
+            # or IP modifying operations work.
             fn(combo, literal)
             # print(self.IP)
 
@@ -154,6 +156,8 @@ with open("day17.txt") as file:
                 # Could probably just early out here and stop the program.
                 return A
 
+            # If the translation matches the desired digit, we have a candidate
+            # value for this coefficent/octal based digit. Continue exploring here.
             if vm.output[pow] == REVERSED_GOAL[current_index]:
                 answers.append(find_A_for_program(vm, current_index+1, A, pow-1))
             
