@@ -99,7 +99,7 @@ def device_path(dev_number, loc, desired):
         visited.add((x,y, path))
 
         
-        if device[y][x] == "x":
+        if device[y][x] == "x":            
             assert False, "f"
             continue
 
@@ -127,7 +127,7 @@ def transform(code, device, cur):
     ans = []
     min_path_size = 1e9
     while Q:
-        next_part, cur_path, cur = Q.popleft(0)
+        next_part, cur_path, cur = Q.popleft()
 
         if len(cur_path) > min_path_size:
             continue
@@ -151,46 +151,64 @@ with open("day21.txt") as file:
     location = None
 
     codes = []
-    
-    for y,line in enumerate(lines):
-        code = list(line)
-        val = int("".join(line[:-1]))
 
-        # path, cur = code_on_keypad(code, keypad_start)
-        # print(len(path))
-        # path, cur = command_on_dir(path, controller_start)
-        # print(len(path))
-        # path, cur = command_on_dir(path, controller_start)
-        # print(len(path))
+    W = len(keypad_gird[0])  
+    H = len(keypad_gird)
+    for y in range(H):
+        for x in range(W):
+            if keypad_gird[y][x] == "x":
+                continue
+            for d in [str(z) for z in range(10)] + ["A"]:
+                a = device_path(1, (x,y), d)
+                print (a)
+                p = a[0][0]
+                for _ in range(25):
+                    p = transform(p, controller, controller_start)[0]
+                print(p)
+#     for y,line in enumerate(lines):
+#         code = list(line)
+#         val = int("".join(line[:-1]))
+
+#         # path, cur = code_on_keypad(code, keypad_start)
+#         # print(len(path))
+#         # path, cur = command_on_dir(path, controller_start)
+#         # print(len(path))
+#         # path, cur = command_on_dir(path, controller_start)
+#         # print(len(path))
         
-        print("processing",code)
-        # for
-        l2 = transform(code, keypad, keypad_start)
-        print("l2 = ",len(l2))
-        l3 = []
-        for p in l2:
-            l3 = l3 + transform(p, controller, controller_start)
-        print("l3 = ", len(l3))
-        l4 = []
-        for p in l3:
-            l4 = l4 + transform(p, controller, controller_start)       
-            if len(l4) % 2000:
-                print("len", len(l4))     
-        m_path = min([len(p) for p in l4])
-        print(code, m_path)
+#         print("processing",code)
+#         # for
+#         l2 = transform(code, keypad, keypad_start)
+#         print("l2 = ",len(l2))
+#         l3 = []
+#         for p in l2:
+#             l3 = l3 + transform(p, controller, controller_start)
+#         print("l3 = ", len(l3))
+#         l4 = []
+#         for p in l3:
+#             l4 = l4 + transform(p, controller, controller_start)       
+#             if len(l4) % 2000:
+#                 print("len", len(l4))     
+#         m_path = min([len(p) for p in l4])
+#         print(code, m_path)
 
-        codes.append((code, val, m_path))
+#         codes.append((code, val, m_path))
        
 
-    ans = 0
-    for code, val, len_path in codes:
-        print(f"{code=} {val=} {len_path=} {len_path*val}")
-        ans += len_path * val
-    answer(ans)
-    #answer(find_cheats(start, path, to_end_distance, 20, 100))
+#     ans = 0
+#     for code, val, len_path in codes:
+#         print(f"{code=} {val=} {len_path=} {len_path*val}")
+#         ans += len_path * val
+#     answer(ans)
+#     #answer(find_cheats(start, path, to_end_distance, 20, 100))
 
-#     029A: <vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
-# 980A: <v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A
-# 179A: <v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
-# 456A: <v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A
-# 379A: <v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
+# #     029A: <vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
+# # 980A: <v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A
+# # 179A: <v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
+# # 456A: <v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A
+# # 379A: <v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
+
+
+
+there are a finite number of commands to generate a sequence.
+
