@@ -1,66 +1,21 @@
 from aoc_helper import *
 import heapq
-from collections import defaultdict, deque
+from collections import deque
+import functools
 
 UP = (0,-1)
 DOWN = (0,1)
 RIGHT = (1,0)
 LEFT = (-1,0)
 
-
-def code_on_keypad(code, cur):
-    path = ""
-    for ch in code:
-        sub_path, cur = device_path(keypad, cur, ch)
-        path += sub_path
-    return path, cur
-
-def command_on_dir(command, cur):
-    path = ""
-    for ch in command:
-        sub_path, cur = device_path(controller, cur, ch)
-        path += sub_path
-    return path, cur
-
-
-# def dijkstra_algorithm(start, end, grid):
-#     h = len(grid)
-#     w = len(grid[0])
-
-#     dist = defaultdict(lambda: (w*h)**2)
-#     visited = set()
-#     nodes = [(0, *start)]
-#     dist[start] = 0
-#     path = defaultdict(lambda: None)
-#     #path[start] = None
-#     while nodes:
-#         d, x, y = heapq.heappop(nodes)
-#         if (x,y) in visited:
-#             continue
-#         visited.add((x,y))
-#         if x == end[0] and y == end[1]:
-#             if d < dist[(x,y)]:
-#                 dist[(x,y)] = d
-#         for offset in [LEFT, RIGHT, UP, DOWN]:
-#             dx,dy = offset
-#             nx = x + dx
-#             ny = y + dy
-#             if 0 <= ny <= h and 0 <= nx <= w and grid[ny][nx] != "#":
-#                 heapq.heappush(nodes, (d + 1, nx,ny))
-#                 if d + 1 < dist[(nx,ny)]:
-#                     dist[(nx,ny)] = d + 1
-#                     path[(nx,ny)] = (x,y)
-#     return dist, path
-
-
-d_to_c = {
+DIRECTION_TO_COMMAND = {
     UP: "^",
     DOWN: "v",
     RIGHT: ">",
     LEFT: "<",
 }
 
-commands = {    
+COMMANDS_TO_DIRECTION = {    
     "^": UP,
     "v": DOWN,
     ">": RIGHT,
@@ -68,27 +23,35 @@ commands = {
     "A": None
 }
 
-keypad_start = (2, 3)
-keypad = 1
-keypad_gird = [ list("789"), list("456"), list("123"), list("x0A") ]
-controller_start = (2, 0)
-controller = 2
-controller_grid = [ ["x", "^", "A"], ["<","v",">"]]
+CONTROLLER_KEY_TO_LOCATION = {
+    "x": (0,0),
+    "^": (1,0),
+    "A": (2,0),    
 
-import functools
+    "<": (0,1),
+    "v": (1,1),        
+    ">": (2,1),    
+}
+
+keypad_start = (2, 3)
+KEYPAD = 1
+keypad_grid = [ list("789"), list("456"), list("123"), list("x0A") ]
+controller_start = (2, 0)
+CONTROLLER = 2
+controller_grid = [ ["x", "^", "A"], ["<","v",">"]]
 
 @functools.cache
 def device_path(dev_number, loc, desired):
-    device = keypad_gird if dev_number == 1 else controller_grid
+    device = keypad_grid if dev_number == 1 else controller_grid
     W = len(device[0])
     H = len(device)
 
-    Q = [(0, loc, DOWN, "")]
+    Q = [(0, loc, "")]
     visited = set()
     all_paths = []
     min_len = None
     while Q:
-        dist, cur, dir, path = heapq.heappop(Q)
+        dist, cur, path = heapq.heappop(Q)
         x, y = cur
 
         if min_len and dist > min_len:
@@ -97,30 +60,87 @@ def device_path(dev_number, loc, desired):
         if (x,y, path) in visited:
             continue
         visited.add((x,y, path))
-
         
         if device[y][x] == "x":            
-            assert False, "f"
-            continue
+            assert False, "panic!"
 
         if device[y][x] == desired:
             all_paths.append((path + "A", (x,y)))
             if not min_len:
                 min_len = len(path + "A")
             
-            #return path+"A", (x,y)
-        
         for dx,dy in [DOWN, LEFT, UP, RIGHT]:
             nx = x + dx
             ny = y + dy
             if 0 <= nx < W and 0 <= ny < H and device[ny][nx] != "x":
-                heapq.heappush(Q, (dist + 1, (nx,ny), (dx,dy), path+d_to_c[(dx,dy)]))
+                heapq.heappush(Q, (dist + 1, (nx,ny), path+DIRECTION_TO_COMMAND[(dx,dy)]))
 
     shortest_paths = []
     for p, c in all_paths:
         if len(p) == min_len:
             shortest_paths.append((p, c))
     return shortest_paths
+
+# Pre=compute all paths
+# (robot_location, target, cost)
+all = {}
+for y in range(len(controller_grid)):
+    for x in range(len(controller_grid[0])):
+        if controller_grid[y][x] == "x":
+            continue
+        robot_loc = (x,y)
+        for ch in "<>^vA":
+            options = device_path(CONTROLLER, robot_loc, ch)
+            all[(x,y,ch)] = options
+
+# Readding the forums indicated some of these solutions may be less
+# optimal but seems to work same with or with out them
+# all[(2,0,"<")].pop(0)
+# all[(0,1,"A")].pop()
+# all[(2,0,"v")].pop(0)
+
+def forward_sim(codes, device, start):
+    result = ""
+    x,y = start
+    for ch in codes:
+        assert ch != " ", "Panic!"
+        if ch == "A":
+            # capture result 
+            result += keypad_grid[y][x] if device == 1 else controller_grid[y][x]
+        else:
+            dx,dy = COMMANDS_TO_DIRECTION[ch]
+            x += dx
+            y += dy
+    return result
+
+def check_solution(code, num_robots):
+    for i in range(num_robots):
+        code = forward_sim(code, 2, (2,0))
+    # punch into keypad
+    return forward_sim(code, 1, (2,3))
+
+@functools.cache
+def bfs_min_path(ch, x , y, depth, max_depth):
+    # if depth % 5 == 0:
+    #     print(x,y,depth)
+    if depth >= max_depth:
+        assert len(all[(x,y,ch)]) == 1 or len(all[(x,y,ch)][0][0]) == len(all[(x,y,ch)][1][0]) 
+        p, l = all[(x,y,ch)][0]
+       # print(f"returning {depth=} {p=} {l=}")
+        return len(p)
+
+    best = None
+    for p in all[(x,y,ch)]:        
+        loc = controller_start
+        result = 0
+        for ch2 in p[0]:
+            r = bfs_min_path(ch2, *loc, depth+1, max_depth)
+            loc = CONTROLLER_KEY_TO_LOCATION[ch2]
+            result += r
+        if not best or result < best:
+            best = result
+    #print(ch, x, y, depth, best)
+    return best
 
 def transform(code, device, cur):
     Q = deque([(code, "", cur)])
@@ -144,71 +164,27 @@ def transform(code, device, cur):
                 
     return ans
 
-
+ans = 0
 #with open("test.txt") as file:
 with open("day21.txt") as file:
     lines = file.read().strip().splitlines()
     location = None
-
-    codes = []
-
-    W = len(keypad_gird[0])  
-    H = len(keypad_gird)
-    for y in range(H):
-        for x in range(W):
-            if keypad_gird[y][x] == "x":
-                continue
-            for d in [str(z) for z in range(10)] + ["A"]:
-                a = device_path(1, (x,y), d)
-                print (a)
-                p = a[0][0]
-                for _ in range(25):
-                    p = transform(p, controller, controller_start)[0]
-                print(p)
-#     for y,line in enumerate(lines):
-#         code = list(line)
-#         val = int("".join(line[:-1]))
-
-#         # path, cur = code_on_keypad(code, keypad_start)
-#         # print(len(path))
-#         # path, cur = command_on_dir(path, controller_start)
-#         # print(len(path))
-#         # path, cur = command_on_dir(path, controller_start)
-#         # print(len(path))
-        
-#         print("processing",code)
-#         # for
-#         l2 = transform(code, keypad, keypad_start)
-#         print("l2 = ",len(l2))
-#         l3 = []
-#         for p in l2:
-#             l3 = l3 + transform(p, controller, controller_start)
-#         print("l3 = ", len(l3))
-#         l4 = []
-#         for p in l3:
-#             l4 = l4 + transform(p, controller, controller_start)       
-#             if len(l4) % 2000:
-#                 print("len", len(l4))     
-#         m_path = min([len(p) for p in l4])
-#         print(code, m_path)
-
-#         codes.append((code, val, m_path))
-       
-
-#     ans = 0
-#     for code, val, len_path in codes:
-#         print(f"{code=} {val=} {len_path=} {len_path*val}")
-#         ans += len_path * val
-#     answer(ans)
-#     #answer(find_cheats(start, path, to_end_distance, 20, 100))
-
-# #     029A: <vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A
-# # 980A: <v<A>>^AAAvA^A<vA<AA>>^AvAA<^A>A<v<A>A>^AAAvA<^A>A<vA>^A<A>A
-# # 179A: <v<A>>^A<vA<A>>^AAvAA<^A>A<v<A>>^AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
-# # 456A: <v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A
-# # 379A: <v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
-
-
-
-there are a finite number of commands to generate a sequence.
-
+    for NUM_ROBOTS in [2, 25]:
+        ans = 0
+        for code in lines:        
+            val = int("".join(code[:-1]))
+            #print(code, val)
+            options = []
+            for ways in transform(code, KEYPAD, (2,3)):
+                #print(ways)                
+                p_length = 0
+                robot_input = 0
+                loc = controller_start
+                for ch in ways:
+                    shortest = bfs_min_path(ch,*loc,0,NUM_ROBOTS-1)
+                    loc = CONTROLLER_KEY_TO_LOCATION[ch]
+                    robot_input += shortest
+                options.append(robot_input)
+                #print(robot_input, check_solution(robot_input, NUM_ROBOTS))              
+            ans += min(options) * val
+        answer(ans)
