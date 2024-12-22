@@ -114,13 +114,13 @@ def forward_sim(codes, device, start):
     return result
 
 def check_solution(code, num_robots):
-    for i in range(num_robots):
+    for _ in range(num_robots):
         code = forward_sim(code, 2, (2,0))
     # punch into keypad
     return forward_sim(code, 1, (2,3))
 
 @functools.cache
-def bfs_min_path(ch, x , y, depth, max_depth):
+def bfs_min_path_controller(ch, x , y, depth, max_depth):
     # if depth % 5 == 0:
     #     print(x,y,depth)
     if depth >= max_depth:
@@ -134,7 +134,7 @@ def bfs_min_path(ch, x , y, depth, max_depth):
         loc = controller_start
         result = 0
         for ch2 in p[0]:
-            r = bfs_min_path(ch2, *loc, depth+1, max_depth)
+            r = bfs_min_path_controller(ch2, *loc, depth+1, max_depth)
             loc = CONTROLLER_KEY_TO_LOCATION[ch2]
             result += r
         if not best or result < best:
@@ -181,7 +181,7 @@ with open("day21.txt") as file:
                 robot_input = 0
                 loc = controller_start
                 for ch in ways:
-                    shortest = bfs_min_path(ch,*loc,0,NUM_ROBOTS-1)
+                    shortest = bfs_min_path_controller(ch,*loc,0,NUM_ROBOTS-1)
                     loc = CONTROLLER_KEY_TO_LOCATION[ch]
                     robot_input += shortest
                 options.append(robot_input)
