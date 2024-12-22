@@ -41,7 +41,7 @@ with open("day22.txt") as file:
             # eliminate a bunch of searching. After solving the problem, I moved this up to 9
             # for my input. A more comprehensive solution should use all. For my input all
             # sequences to try was 40,951. Using >= 9 whittles that down to 10,000. Although the 
-            # runtime isn't too bad either way (difference of seconds)
+            # runtime isn't too bad either way (difference of 15 seconds in runtime)
             if ones[i+4] >= 9:
                 sequences_to_try.add(seq)
         ans += s
